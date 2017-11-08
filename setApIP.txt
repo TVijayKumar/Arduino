@@ -1,0 +1,10 @@
+http://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+
+IPAddress    apIP(10, 10, 10, 1);                               // Private network address: local & gateway
+
+<...>
+void setup() {
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));   // subnet FF FF FF 00
+  WiFi.softAP("TardisTime");
