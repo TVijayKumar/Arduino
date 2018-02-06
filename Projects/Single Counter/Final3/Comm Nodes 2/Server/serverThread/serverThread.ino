@@ -10,7 +10,6 @@
 #include <SPI.h>
 #include <ESP8266WiFi.h>
 
-byte ledPin = 2;
 char ssid[] = "vijay";               // SSID of your home WiFi
 char pass[] = "Vijay123";               // password of your home WiFi
 WiFiServer server(80);                    
@@ -18,15 +17,12 @@ WiFiServer server(80);
 IPAddress ip(10,10,10,100);            // IP address of the server
 IPAddress gateway(10,10,10,1);           // gateway of your network
 IPAddress subnet(255,255,255,0);          // subnet mask of your network
-//IPAddress dns(8.8.8.8);          // subnet mask of your network
 
 // ThreadController that will controll all threads
-ThreadController controll = ThreadController();
+ThreadController thread_controll = ThreadController();
 
 //My Thread (as a pointer)
-Thread* myThread = new Thread();
-//His Thread (not pointer)
-Thread hisThread = Thread();
+Thread* server_thread = new Thread();
 
 void printWIFI(){
   Serial.println("Connected to wifi");
@@ -53,11 +49,8 @@ void serverHandler(){
   }  
 }
 
-void boringCallback(){
-  
-}
 void setup() {
-  Serial.begin(115200);                   // only for debug
+  Serial.begin(9600);                   // only for debug
   WiFi.config(ip, gateway, subnet);       // forces to use the fix IP
   Serial.println("connecting to Router..");
   WiFi.begin(ssid, pass);                 // connects to the WiFi router
@@ -69,24 +62,17 @@ void setup() {
   server.begin();                         // starts the server
   printWIFI();
 
-  myThread->onRun(serverHandler);
-  myThread->setInterval(500);
+  server_thread->onRun(serverHandler);
+  server_thread->setInterval(500);
 
-  // Configure myThread
-  hisThread.onRun(boringCallback);
-  hisThread.setInterval(250);
-
-  // Adds both threads to the controller
-  controll.add(myThread);
-  controll.add(&hisThread); // & to pass the pointer to it
-
+  thread_controll.add(server_thread);
 }
 void loop () {
 
     // run ThreadController
   // this will check every thread inside ThreadController,
   // if it should run. If yes, he will run it;
-  controll.run();
+  thread_controll.run();
 
   // Rest of code
 

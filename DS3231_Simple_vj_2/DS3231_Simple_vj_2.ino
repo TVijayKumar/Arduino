@@ -9,7 +9,7 @@
 #include <SoftwareWire.h>  // must be included here so that Arduino library object file references work
 #include <RtcDS3231.h>
 
-SoftwareWire myWire(D1, D2); //D1 SDA , D2 SDC
+SoftwareWire myWire(D2, D1); //D2 SDA , D1 SDC
 RtcDS3231<SoftwareWire> Rtc(myWire);
 
 void setup () 

@@ -27,7 +27,7 @@ Thread hisThread = Thread();
 
 void clientHandler(){
   client.connect(server, 80);   // Connection to the server
-  client.println("Hello server! I am Printer\r");  // sends the message to the server
+  client.println("I am Printer\r");  // sends the message to the server
   String answer = client.readStringUntil('\r');   // receives the answer from the sever
   Serial.println("from server: " + answer);
   client.flush();

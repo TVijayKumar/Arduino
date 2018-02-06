@@ -16,37 +16,46 @@ IPAddress    apIP(10, 10, 10, 1);        // Private network address: local & gat
 IPAddress server2(10,10,10,100); 
 WiFiClient client;
 
+int val = 0;
+
 // ThreadController that will controll all threads
-ThreadController controll = ThreadController();
+ThreadController thread_controll = ThreadController();
 
 //My Thread (as a pointer)
-Thread* myThread = new Thread();
-//His Thread (not pointer)
-Thread hisThread = Thread();
+//Thread *client_tid = new Thread();
+Thread *client_rd_tid = new Thread();
+Thread *client_wr_tid = new Thread();
 
 void handleRoot() {
   server.send(200, "text/html", "<h1>You are connected</h1>");
 }
 
 // callback for myThread
-void clientHandler(){
+/*void handleServer(){
   client.connect(server2, 80);   // Connection to the server
-  client.println("Main display.\r");  // sends the message to the server
+  client.println("Printer.\r");  // sends the message to the server
+  client.flush();
   String answer = client.readStringUntil('\r');   // receives the answer from the sever
   Serial.println("from server: " + answer);
-  client.flush();
   delay(2000);                  // client will trigger the communication after two seconds
-
+  //client.stop();
+}
+*/
+void writeToServer(){
+  client.connect(server2, 90);   // Connection to the server
+  client.println("MainDisplay.\r");  // sends the message to the server
+  client.flush();  
 }
 
-// callback for hisThread
-void boringCallback(){
+void readFromServer(){
+  client.connect(server2, 80);   // Connection to the server
+  String answer = client.readStringUntil('\r');   // receives the answer from the sever
+  Serial.println("from server: " + answer);
 }
-
 void setup(){
 
   delay(1000);
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println();
   Serial.print("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
@@ -62,24 +71,25 @@ void setup(){
   server.on("/", handleRoot);
   server.begin();
   Serial.println("HTTP server started");
-  // Configure myThread
-  myThread->onRun(clientHandler);
-  myThread->setInterval(500);
 
   // Configure myThread
-  hisThread.onRun(boringCallback);
-  hisThread.setInterval(250);
+  //client_tid -> onRun(handleServer);
+  //client_tid -> setInterval(500);
+  
+  client_wr_tid -> onRun(writeToServer);
+  client_wr_tid -> setInterval(500);
+  thread_controll.add(client_wr_tid);
 
-  // Adds both threads to the controller
-  controll.add(myThread);
-  controll.add(&hisThread); // & to pass the pointer to it
+  client_rd_tid -> onRun(readFromServer);
+  client_rd_tid -> setInterval(500);
+  thread_controll.add(client_rd_tid);
 }
 
 void loop(){
   // run ThreadController
   // this will check every thread inside ThreadController,
   // if it should run. If yes, he will run it;
-  controll.run();
-
+  handleRoot();
+  thread_controll.run();
   // Rest of code
 }

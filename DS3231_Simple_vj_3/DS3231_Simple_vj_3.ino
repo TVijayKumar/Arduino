@@ -5,24 +5,24 @@
 // DS3231 VCC --> 3.3v or 5v
 // DS3231 GND --> GND
 
-// for software wire use below
+/* for software wire use below */
 #include <SoftwareWire.h>  // must be included here so that Arduino library object file references work
 #include <RtcDS3231.h>
 
 SoftwareWire myWire(D1, D2);
 RtcDS3231<SoftwareWire> Rtc(myWire);
-// for software wire use above 
+/* for software wire use above */
 
-/* for normal hardware wire use below */
-//#include <Wire.h> // must be included here so that Arduino library object file references work
-//#include <RtcDS3231.h>
-//RtcDS3231<TwoWire> Rtc(Wire);
-/* for normal hardware wire use above */
+/* for normal hardware wire use below 
+#include <Wire.h> // must be included here so that Arduino library object file references work
+#include <RtcDS3231.h>
+RtcDS3231<TwoWire> Rtc(Wire);
+ for normal hardware wire use above */
 
 
 void setup () 
 {
-    Serial.begin(9600);/*
+    Serial.begin(57600);
 
     Serial.print("compiled: ");
     Serial.print(__DATE__);
@@ -78,28 +78,27 @@ void setup ()
     // never assume the Rtc was last configured by you, so
     // just clear them to your needed state
     Rtc.Enable32kHzPin(false);
-    Rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone); */
+    Rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone); 
 }
 
 void loop () 
 {
-/*    if (!Rtc.IsDateTimeValid()) 
+    if (!Rtc.IsDateTimeValid()) 
     {
         // Common Cuases:
         //    1) the battery on the device is low or even missing and the power line was disconnected
         Serial.println("RTC lost confidence in the DateTime!");
     }
 
-    RtcDateTime now = Rtc.GetDateTime();*/
-    RtcDateTime now = RtcDateTime(__DATE__, __TIME__);
+    RtcDateTime now = Rtc.GetDateTime();
     printDateTime(now);
     Serial.println();
-/*
+
     RtcTemperature temp = Rtc.GetTemperature();
     Serial.print(temp.AsFloat());
     Serial.println("C");
-*/
-    delay(10000); // ten seconds*/
+
+    delay(10000); // ten seconds
 }
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
@@ -107,6 +106,7 @@ void loop ()
 void printDateTime(const RtcDateTime& dt)
 {
     char datestring[20];
+
     snprintf_P(datestring, 
             countof(datestring),
             PSTR("%02u/%02u/%04u %02u:%02u:%02u"),
@@ -118,4 +118,12 @@ void printDateTime(const RtcDateTime& dt)
             dt.Second() );
     Serial.print(datestring);
 }
+void setup() {
+  // put your setup code here, to run once:
 
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+}

@@ -12,18 +12,18 @@
   ------------------------------------------------------------------------*/
 
 #include "Adafruit_Thermal.h"
-#include "adalogo.h"
-#include "adaqrcode.h"
+//#include "adalogo.h"
+//#include "adaqrcode.h"
 
 // Here's the new syntax when using SoftwareSerial (e.g. Arduino Uno) ----
 // If using hardware serial instead, comment out or remove these lines:
 
 #include "SoftwareSerial.h"
-#define TX_PIN 3 // Arduino transmit  YELLOW WIRE  labeled RX on printer
-#define RX_PIN 2 // Arduino receive   GREEN WIRE   labeled TX on printer
+#define TX_PIN D3 // Arduino transmit  YELLOW WIRE  labeled RX on printer
+#define RX_PIN D4 // Arduino receive   GREEN WIRE   labeled TX on printer
 
-//SoftwareSerial mySerial(RX_PIN, TX_PIN); // Declare SoftwareSerial obj first
-Adafruit_Thermal printer(&Serial);     // Pass addr to printer constructor
+SoftwareSerial mySerial(RX_PIN, TX_PIN); // Declare SoftwareSerial obj first
+Adafruit_Thermal printer(&mySerial);     // Pass addr to printer constructor
 // Then see setup() function regarding serial & printer begin() calls.
 
 // Here's the syntax for hardware serial (e.g. Arduino Due) --------------

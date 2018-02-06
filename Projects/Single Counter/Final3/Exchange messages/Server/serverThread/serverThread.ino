@@ -6,20 +6,15 @@
  */
 #include <Thread.h>
 #include <ThreadController.h>
-
 #include <SPI.h>
 #include <ESP8266WiFi.h>
-
 #include <LiquidCrystal.h>
-
-const int rs = D3, en = D4, d4 = D5, d5 = D6, d6 = D7, d7 = D8;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 byte prev_key = D0;
 byte next_key = D1;
-//byte ok_key = D8;
+const int rs = D3, en = D4, d4 = D5, d5 = D6, d6 = D7, d7 = D8;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-byte ledPin = 2;
 char ssid[] = "vijay";               // SSID of your home WiFi
 char pass[] = "Vijay123";               // password of your home WiFi
 WiFiServer server(80);                    
@@ -27,15 +22,13 @@ WiFiServer server(80);
 IPAddress ip(10,10,10,100);            // IP address of the server
 IPAddress gateway(10,10,10,1);           // gateway of your network
 IPAddress subnet(255,255,255,0);          // subnet mask of your network
-//IPAddress dns(8.8.8.8);          // subnet mask of your network
 
 // ThreadController that will controll all threads
-ThreadController controll = ThreadController();
+ThreadController thread_controll = ThreadController();
 
 //My Thread (as a pointer)
-Thread* myThread = new Thread();
-//His Thread (not pointer)
-Thread hisThread = Thread();
+Thread* server_thread = new Thread();
+Thread* keys_thread = new Thread();
 
 void printWIFI(){
   Serial.println("Connected to wifi");
@@ -47,55 +40,38 @@ void printWIFI(){
   Serial.print("Signal: "); Serial.println(WiFi.RSSI());
   Serial.print("Networks: "); Serial.println(WiFi.scanNetworks());
 }
-char tocken_str[6]={'\0'};
-char current_tocken_str[6]={'\0'};
 
-void parseClientRequest(String request){
-  const char *ptr = request.c_str();
-    for(int i=0; i < request.length(); i++){
-      if(*(ptr+i) == '#' ){  
-        lcd.clear();
-        for(char i=0; i < 6 ; i++) tocken_str[i]='\0';
-        for(int j=0; *(ptr+i) != '\r' ; j++){
-         i++;
-         if(*(ptr+i) == '*'){
-             *(tocken_str+j) = '\0';
-             break;
-          }
-          *(tocken_str+j) = *(ptr+i);
-        }
-        break;
-      }
-    }
-    lcd.setCursor(0,0);
-    lcd.write("TotalTockens:");
-    lcd.write(tocken_str);  
-}
-      
-void serverCallback(){
-  yield();
+void serverHandler(){
   WiFiClient client = server.available();
   if (client) {
     if (client.connected()) {
       String request = client.readStringUntil('\r');    // receives the message from the client
       Serial.print("From client: "); Serial.println(request);
+      lcd.clear();
+      lcd.write(request.c_str());
 
-      parseClientRequest(request);
-     
-      Serial.print("Tocken: "); Serial.println(tocken_str);
-      
       client.flush();
-//      client.println("vijay:" + request );
-      client.print("To Main Display : #"); client.print(current_tocken_str); client.println("*\r");
-//      client.println("Hello Client.\r"); // sends the answer to the client
+      client.println("Hello" + request);
+      client.println("\r"); // sends the answer to the client
     }
     client.stop();                // tarminates the connection with the client
   }  
 }
+void wifiStatus(){
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.println("connecting to Router...");
+    lcd.clear();
+    lcd.write("cnctng 2 Router");
+    lcd.setCursor(2,1);
+    lcd.write(".....");
+    delay(300);
+  }
+}
 
 unsigned int tocken_num = 0;
+char current_tocken_str[6]={'\0'};
 
-void boringCallback(){
+void keysHandler(){
   yield();
   if(!digitalRead(prev_key)){
     while(!digitalRead(prev_key));
@@ -124,6 +100,12 @@ void boringCallback(){
 
   yield();
   strcpy(current_tocken_str,String(tocken_num).c_str());
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+//  lcd.write("TotalTockens:");
+//  lcd.write(tocken_str);  
+
   lcd.setCursor(0,1);
   lcd.write("Current : ");
   lcd.write(current_tocken_str);    
@@ -132,47 +114,42 @@ void boringCallback(){
 void setup() {
   pinMode(prev_key,INPUT);
   pinMode(next_key,INPUT);
-//  pinMode(ok_key,INPUT);
-
+  
   lcd.begin(16, 2);
-  lcd.write("connecting to");
-  lcd.setCursor(2,1);
-  lcd.write("Router...");
   Serial.begin(9600);                   // only for debug
+  
   WiFi.config(ip, gateway, subnet);       // forces to use the fix IP
   Serial.println("connecting to Router..");
   WiFi.begin(ssid, pass);                 // connects to the WiFi router
   while (WiFi.status() != WL_CONNECTED) {
     Serial.println("connecting to Router...");
+    lcd.clear();
+    lcd.write("cnctng 2 Router");
+    lcd.setCursor(2,1);
+    lcd.write(".....");
     delay(500);
-  }  
+  }
   lcd.clear();
-  lcd.write("connected to");
-  lcd.setCursor(4,1);
-  lcd.write("Router.");
+  lcd.write("cnctd 2 Router");
   Serial.println("connected to Router.");
+  
   server.begin();                         // starts the server
   printWIFI();
 
-  myThread->onRun(serverCallback);
-  myThread->setInterval(500);
-
-  // Configure myThread
-  hisThread.onRun(boringCallback);
-  hisThread.setInterval(250);
-
-  // Adds both threads to the controller
-  controll.add(myThread);
-  controll.add(&hisThread); // & to pass the pointer to it
-  delay(200);
+  server_thread->onRun(serverHandler);
+  server_thread->setInterval(500);
+  keys_thread->onRun(keysHandler);
+  keys_thread->setInterval(250);
+  thread_controll.add(server_thread);
+  thread_controll.add(keys_thread);
 }
 void loop () {
 
     // run ThreadController
   // this will check every thread inside ThreadController,
   // if it should run. If yes, he will run it;
-  controll.run();
-
+  wifiStatus();
+  thread_controll.run();
   // Rest of code
 
 }

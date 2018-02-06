@@ -1,6 +1,3 @@
-#include <Thread.h>
-#include <ThreadController.h>
-
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h> 
 #include <ESP8266WebServer.h>
@@ -16,46 +13,30 @@ IPAddress    apIP(10, 10, 10, 1);        // Private network address: local & gat
 IPAddress server2(10,10,10,100); 
 WiFiClient client;
 
-// ThreadController that will controll all threads
-ThreadController controll = ThreadController();
-
-//My Thread (as a pointer)
-Thread* myThread = new Thread();
-//His Thread (not pointer)
-Thread hisThread = Thread();
-
 void handleRoot() {
   server.send(200, "text/html", "<h1>You are connected</h1>");
 }
 
-// callback for myThread
-void clientHandler(){
+void handleServer(){
   client.connect(server2, 80);   // Connection to the server
-  client.println("Main display.\r");  // sends the message to the server
+  client.println("Hello server from MD..\r");  // sends the message to the server
   String answer = client.readStringUntil('\r');   // receives the answer from the sever
-  Serial.println("from server: " + answer);
+  Serial.println("MD : from server: " + answer);
   client.flush();
   delay(2000);                  // client will trigger the communication after two seconds
-
-}
-
-// callback for hisThread
-void boringCallback(){
 }
 
 void setup(){
-
   delay(1000);
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println();
+
+//Configuring Nodemcu as Access Point
   Serial.print("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));   // subnet FF FF FF 00
-//  WiFi.softAP("TardisTime");
-
   WiFi.softAP(ssid, password);
-
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
@@ -63,23 +44,9 @@ void setup(){
   server.begin();
   Serial.println("HTTP server started");
   // Configure myThread
-  myThread->onRun(clientHandler);
-  myThread->setInterval(500);
-
-  // Configure myThread
-  hisThread.onRun(boringCallback);
-  hisThread.setInterval(250);
-
-  // Adds both threads to the controller
-  controll.add(myThread);
-  controll.add(&hisThread); // & to pass the pointer to it
 }
 
 void loop(){
-  // run ThreadController
-  // this will check every thread inside ThreadController,
-  // if it should run. If yes, he will run it;
-  controll.run();
-
-  // Rest of code
+  yield();
+  handleServer();
 }

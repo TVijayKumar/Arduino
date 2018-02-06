@@ -17,12 +17,10 @@ IPAddress server2(10,10,10,100);
 WiFiClient client;
 
 // ThreadController that will controll all threads
-ThreadController controll = ThreadController();
+ThreadController thread_controll = ThreadController();
 
 //My Thread (as a pointer)
-Thread* myThread = new Thread();
-//His Thread (not pointer)
-Thread hisThread = Thread();
+Thread* client_thread = new Thread();
 
 void handleRoot() {
   server.send(200, "text/html", "<h1>You are connected</h1>");
@@ -36,17 +34,11 @@ void clientHandler(){
   Serial.println("from server: " + answer);
   client.flush();
   delay(2000);                  // client will trigger the communication after two seconds
-
-}
-
-// callback for hisThread
-void boringCallback(){
 }
 
 void setup(){
-
   delay(1000);
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println();
   Serial.print("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
@@ -63,23 +55,18 @@ void setup(){
   server.begin();
   Serial.println("HTTP server started");
   // Configure myThread
-  myThread->onRun(clientHandler);
-  myThread->setInterval(500);
-
-  // Configure myThread
-  hisThread.onRun(boringCallback);
-  hisThread.setInterval(250);
+  client_thread->onRun(clientHandler);
+  client_thread->setInterval(500);
 
   // Adds both threads to the controller
-  controll.add(myThread);
-  controll.add(&hisThread); // & to pass the pointer to it
+  thread_controll.add(client_thread);
 }
 
 void loop(){
   // run ThreadController
   // this will check every thread inside ThreadController,
   // if it should run. If yes, he will run it;
-  controll.run();
+  thread_controll.run();
 
   // Rest of code
 }
