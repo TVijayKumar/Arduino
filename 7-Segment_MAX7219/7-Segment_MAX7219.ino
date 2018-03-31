@@ -19,6 +19,9 @@ void output(byte address, byte data)
 }
 
 void setup() {
+  Serial.begin(9600);                   // only for debug
+  Serial.println("Started..");
+ 
   // put your setup code here, to run once:
   initialise();
   output(0x0f, 0x00); //display test register - test mode off
@@ -41,8 +44,8 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  
-  for(int i=0;i<10;i++){
+  Serial.println("Loop Started..");
+/*  for(int i=0;i<10;i++){
     output(0x03, i);
     if(i<9)
       output(0x02, i+1);
@@ -54,6 +57,12 @@ void loop() {
       output(0x01, i-8); //digit 0 (rightmost digit) data
     else
       output(0x01, i+2); //digit 0 (rightmost digit) data
+
+//    output(0x01, i);
     delay(600);
-  }
+  }*/
+//  output(0x01, 1);
+//  output(0x02, 2);
+  output(0x03, 5);
+  delay(600);
 }

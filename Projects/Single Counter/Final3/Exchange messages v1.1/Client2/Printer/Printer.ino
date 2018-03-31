@@ -9,6 +9,8 @@
 #include <SPI.h>
 #include <ESP8266WiFi.h>
 
+int sw = D5;  //button to print tocken
+ 
 char ssid[] = "vijay";           // SSID of your home WiFi
 char pass[] = "Vijay123";            // password of your home WiFi
 
@@ -23,16 +25,20 @@ Thread* client_thread = new Thread();
 //His Thread (not pointer)
 Thread hisThread = Thread();
 
+static int tocken_num=0;
+
 void clientHandler(){
   client.connect(server, 80);   // Connection to the server
-  client.println("Printer\r");  // sends the message to the server
+  client.println("#" + String(tocken_num) + "*" + "\r");  // sends the message to 
   String answer = client.readStringUntil('\r');   // receives the answer from the sever
   Serial.println("from server: " + answer);
   client.flush();
   delay(2000);                  // client will trigger the communication after two seconds  
+  yield();
 }
 
 void setup() {
+  pinMode(sw,INPUT);
   Serial.begin(9600);               // only for debug
   WiFi.begin(ssid, pass);             // connects to the WiFi router
   while (WiFi.status() != WL_CONNECTED) {
@@ -55,4 +61,12 @@ void setup() {
 
 void loop () {
   thread_controll.run();
+  if(false == digitalRead(sw)){
+    while(false == digitalRead(sw));
+    delay(30);
+    while(false == digitalRead(sw));
+    tocken_num++;
+    Serial.println("Printer Tocken to send : " + String(tocken_num));
+    yield();
+  }
 }

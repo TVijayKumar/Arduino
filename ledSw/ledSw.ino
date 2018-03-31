@@ -15,7 +15,7 @@ void loop() {
     while(false == digitalRead(sw));
     delay(100);
     while(false == digitalRead(sw));
-    Serial.println("Connecting to Router..");
+    Serial.println("Swich pressed..");
   }
 
   /*  digitalWrite(led,true);
