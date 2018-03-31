@@ -18,6 +18,13 @@ void output(byte address, byte data)
   digitalWrite(MAX7219_CS, HIGH);
 }
 
+void sendToDisplay(int val){
+  output(0x01,val/100);
+  val = val %100;
+  output(0x02,val/10);
+  val = val %10;
+  output(0x03,val);
+}
 void setup() {
   Serial.begin(9600);                   // only for debug
   Serial.println("Started..");
@@ -29,40 +36,19 @@ void setup() {
   output(0x0b, 0x07); //scan limit register - display digits 0 thru 7
   output(0x0a, 0x0f); //intensity register - max brightness
   output(0x09, 0xff); //decode mode register - CodeB decode all digits
-/*  output(0x08, 0x08); //digit 7 (leftmost digit) data
-  output(0x07, 0x07);
-  output(0x06, 0x06);
-  output(0x05, 0x05);
-  output(0x04, 0x04);
-  output(0x03, 0x03);
-  output(0x02, 0x02);
-  for(int i=0;i<10;i++){
-    output(0x01, i); //digit 0 (rightmost digit) data
-    delay(300);
-  }*/
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("Loop Started..");
-/*  for(int i=0;i<10;i++){
-    output(0x03, i);
-    if(i<9)
-      output(0x02, i+1);
-    else
-      output(0x02, i-9);
-    if(i==8 )
-      output(0x01, i-8); //digit 0 (rightmost digit) data
-    else if(i==9)
-      output(0x01, i-8); //digit 0 (rightmost digit) data
-    else
-      output(0x01, i+2); //digit 0 (rightmost digit) data
 
-//    output(0x01, i);
-    delay(600);
-  }*/
+  for(int i=0;i<1000;i++){
+    Serial.println(i,DEC);
+     sendToDisplay(i);
+    delay(300);  
+  }/*
   output(0x01, 1);
   output(0x02, 2);
   output(0x03, 5);
-  delay(600);
+  delay(600);*/
 }
